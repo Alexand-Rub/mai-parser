@@ -88,6 +88,6 @@ def exel_maker(export_date: list[dict]):
 
 if __name__ == '__main__':
     print('До какой даты смотерть статьи?')
-    print('Загрузка...')
     end_date = normalization_date(date_text=input('Введите дату (гггг.мм.дд): '))
+    print('Загрузка...')
     exel_maker(microwavejournal(older_date=end_date))

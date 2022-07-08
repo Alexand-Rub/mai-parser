@@ -1,6 +1,6 @@
 # Byte-compiled / optimized / DLL files
 .idea/
-tables/
+*xlsx
 
 __pycache__/
 *.py[cod]
