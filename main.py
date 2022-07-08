@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup as Bs
 import datetime
 from openpyxl import Workbook
-from os import path
+from os import path, mkdir
 
 
 def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
@@ -63,6 +63,8 @@ def exel_maker(export_date: list[dict]):
         column = 1
         row += 1
 
+    if not(path.exists('tables')):
+        mkdir('tables')
     table_name = 'tables/' + input('Введите имя таблицы: ') + '.xlsx'
     if path.exists(table_name):
         name_flag = True
@@ -70,7 +72,11 @@ def exel_maker(export_date: list[dict]):
         book.save(table_name)
         name_flag = False
     while name_flag:
-        answer = input(input('Такой файл уже существует!\n1. Перезаписать\n2. Переименовать\n3. Закончить'))
+        answer = input('Такой файл уже существует!\n'
+                           '1. Переименовать\n'
+                           '2. Перезаписать\n'
+                           '3. Закончить\n'
+                           'Введите номер команды: ')
         match answer:
             case '1':
                 table_name = 'tables/' + input('Введите имя таблицы: ') + '.xlsx'
@@ -78,7 +84,6 @@ def exel_maker(export_date: list[dict]):
                 book.save(table_name)
                 name_flag = False
             case '3':
-                pass
                 name_flag = False
             case _:
                 print('Такой команды нет')
