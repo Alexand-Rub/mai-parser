@@ -79,6 +79,10 @@ def exel_maker(export_date: list[dict]):
                 name_flag = False
             case '3':
                 pass
+                name_flag = False
+            case _:
+                print('Такой команды нет')
+
     book.close()
 
 
