@@ -16,6 +16,7 @@ def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
                    'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
 
     page_num = 1
+    article_num = 1
     articles_info = list()
     while True:
         page = get_page(page_utl='https://www.microwavejournal.com/articles/topic/3372?page=' + str(page_num))
@@ -46,6 +47,8 @@ def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
                     except AttributeError:
                         info_dict[class_key] = 'Нет данных'
                 articles_info.append(info_dict)
+                print('Загруженно статей: {article_num}'.format(article_num=article_num))
+                article_num += 1
         else:
             return articles_info
         page_num += 1
