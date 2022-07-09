@@ -5,6 +5,12 @@ from openpyxl import Workbook
 from os import path, mkdir
 
 
+def get_page(page_utl: str):
+    request = requests.get(page_utl)
+    page = Bs(request.content, 'html.parser')
+    return page
+
+
 def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
     months_dict = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
                    'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
@@ -12,9 +18,7 @@ def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
     page_num = 1
     articles_info = list()
     while True:
-        request = requests.get('https://www.microwavejournal.com/articles/topic/3372?page=' + str(page_num))
-
-        page = Bs(request.content, 'html.parser')
+        page = get_page(page_utl='https://www.microwavejournal.com/articles/topic/3372?page=' + str(page_num))
         articles_list = page.select('.article-summary__details')
         if len(articles_list) > 0:
             x = 1
@@ -24,17 +28,23 @@ def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
                 class_dick = {'Дата': '.date', 'Заголовок': '.headline > a', 'Описание': '.abstract > p'}
                 for class_key in class_dick.keys():
                     try:
-                        info = article.select_one(class_dick[class_key]).text
-                        if class_key == 'Дата':
-                            month, day, year = info.split()
-                            info = '{year}.{month}.{day}'.format(
-                                year=year, month=months_dict[month], day=day[:-1]
-                            )
-                            if datetime.datetime.strptime(info, '%Y.%m.%d').date() < older_date:
-                                return articles_info
+                        select = article.select_one(class_dick[class_key])
+                        info = select.text
+                        match class_key:
+                            case 'Дата':
+                                month, day, year = info.split()
+                                info = '{year}.{month}.{day}'.format(
+                                    year=year, month=months_dict[month], day=day[:-1]
+                                )
+                                if datetime.datetime.strptime(info, '%Y.%m.%d').date() < older_date:
+                                    return articles_info
+                            case 'Заголовок':
+                                info_dict['Теги'] = ', '.join(
+                                    tag.text for tag in get_page(select['href']).select('.tags > a')
+                                )
+                        info_dict[class_key] = info
                     except AttributeError:
-                        info = 'Нет данных'
-                    info_dict[class_key] = info
+                        info_dict[class_key] = 'Нет данных'
                 articles_info.append(info_dict)
         else:
             return articles_info
