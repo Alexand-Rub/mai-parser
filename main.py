@@ -18,6 +18,7 @@ def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
     page_num = 1
     article_num = 1
     articles_info = list()
+    tag_cunt = dict()
     while True:
         page = get_page(page_utl='https://www.microwavejournal.com/articles/topic/3372?page=' + str(page_num))
         articles_list = page.select('.article-summary__details')
@@ -38,11 +39,17 @@ def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
                                     year=year, month=months_dict[month], day=day[:-1]
                                 )
                                 if datetime.datetime.strptime(info, '%Y.%m.%d').date() < older_date:
+                                    for i in tag_cunt:
+                                        print(f'{i}: {tag_cunt[i]}')
                                     return articles_info
                             case 'Заголовок':
-                                info_dict['Теги'] = ', '.join(
-                                    tag.text for tag in get_page(select['href']).select('.tags > a')
-                                )
+                                tag_list = [tag.text for tag in get_page(select['href']).select('.tags > a')]
+                                for tag in tag_list:
+                                    if tag in tag_cunt.keys():
+                                        tag_cunt[tag] += 1
+                                    else:
+                                        tag_cunt[tag] = 1
+                                info_dict['Теги'] = ', '.join(tag_list)
                         info_dict[class_key] = info
                     except AttributeError:
                         info_dict[class_key] = 'Нет данных'
@@ -50,6 +57,8 @@ def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
                 print('Загруженно статей: {article_num}'.format(article_num=article_num))
                 article_num += 1
         else:
+            for i in tag_cunt:
+                print(f'{i}: {tag_cunt[i]}')
             return articles_info
         page_num += 1
 
@@ -108,4 +117,5 @@ if __name__ == '__main__':
     print('До какой даты смотерть статьи?')
     end_date = normalization_date(date_text=input('Введите дату (гггг.мм.дд): '))
     print('Загрузка...')
-    exel_maker(microwavejournal(older_date=end_date))
+    news = microwavejournal(older_date=end_date)
+    exel_maker(export_date=news)
