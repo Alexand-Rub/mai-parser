@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup as Bs
 import datetime
 from openpyxl import Workbook
 from os import path, mkdir
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def get_page(page_utl: str):
@@ -32,24 +34,26 @@ def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
                     try:
                         select = article.select_one(class_dick[class_key])
                         info = select.text
-                        match class_key:
-                            case 'Дата':
-                                month, day, year = info.split()
-                                info = '{year}.{month}.{day}'.format(
-                                    year=year, month=months_dict[month], day=day[:-1]
-                                )
-                                if datetime.datetime.strptime(info, '%Y.%m.%d').date() < older_date:
-                                    for i in tag_cunt:
-                                        print(f'{i}: {tag_cunt[i]}')
-                                    return articles_info
-                            case 'Заголовок':
-                                tag_list = [tag.text for tag in get_page(select['href']).select('.tags > a')]
-                                for tag in tag_list:
-                                    if tag in tag_cunt.keys():
-                                        tag_cunt[tag] += 1
-                                    else:
-                                        tag_cunt[tag] = 1
-                                info_dict['Теги'] = ', '.join(tag_list)
+                        if class_key == 'Дата':
+                            month, day, year = info.split()
+                            info = '{year}.{month}.{day}'.format(
+                                year=year, month=months_dict[month], day=day[:-1]
+                            )
+                            if datetime.datetime.strptime(info, '%Y.%m.%d').date() < older_date:
+                                for i in tag_cunt:
+                                    print(f'{i}: {tag_cunt[i]}')
+                                    plt.bar(i, tag_cunt[i], label = f'{i}', width=0.5)
+                                plt.legend()
+                                plt.show()
+                                return articles_info
+                        if class_key == 'Заголовок':
+                            tag_list = [tag.text for tag in get_page(select['href']).select('.tags > a')]
+                            for tag in tag_list:
+                                if tag in tag_cunt.keys():
+                                    tag_cunt[tag] += 1
+                                else:
+                                    tag_cunt[tag] = 1
+                            info_dict['Теги'] = ', '.join(tag_list)
                         info_dict[class_key] = info
                     except AttributeError:
                         info_dict[class_key] = 'Нет данных'
@@ -71,7 +75,7 @@ def normalization_date(date_text: str):
         input("Некорректная дата! Введите дату ещё раз: ")
 
 
-def exel_maker(export_date: list[dict]):
+def exel_maker(export_date):
     book = Workbook()
     sheet = book.active
     row, column = 1, 1
@@ -99,16 +103,15 @@ def exel_maker(export_date: list[dict]):
                            '2. Перезаписать\n'
                            '3. Закончить\n'
                            'Введите номер команды: ')
-        match answer:
-            case '1':
-                table_name = 'tables/' + input('Введите имя таблицы: ') + '.xlsx'
-            case '2':
-                book.save(table_name)
-                name_flag = False
-            case '3':
-                name_flag = False
-            case _:
-                print('Такой команды нет')
+        if answer == '1':
+            table_name = 'tables/' + input('Введите имя таблицы: ') + '.xlsx'
+        if answer == '2':
+            book.save(table_name)
+            name_flag = False
+        if answer == '3':
+            name_flag = False
+        else:
+            print('Такой команды нет')
 
     book.close()
 
