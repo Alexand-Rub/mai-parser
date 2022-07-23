@@ -21,6 +21,7 @@ def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
     article_num = 1
     articles_info = list()
     tag_cunt = dict()
+    sorted_data = {}
     while True:
         page = get_page(page_utl='https://www.microwavejournal.com/articles/topic/3372?page=' + str(page_num))
         articles_list = page.select('.article-summary__details')
@@ -41,19 +42,14 @@ def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
                             )
                             if datetime.datetime.strptime(info, '%Y.%m.%d').date() < older_date:
                                 for i in tag_cunt:
-                                    print(f'{i}: {tag_cunt[i]}')
-                                    plt.bar(i, tag_cunt[i], label = f'{i}', width=0.5)
-                                plt.legend()
-                                plt.show()
+                                    tag_cunt[i] = tag_cunt[i]
                                 return articles_info
                         if class_key == 'Заголовок':
                             tag_list = [tag.text for tag in get_page(select['href']).select('.tags > a')]
-                            for tag in tag_list:
-                                if tag in tag_cunt.keys():
-                                    tag_cunt[tag] += 1
-                                else:
-                                    tag_cunt[tag] = 1
-                            info_dict['Теги'] = ', '.join(tag_list)
+                            sorted_data = analyze_tags(tag_cunt, tag_list)
+                            #print(sorted_data)
+                            draw_bars(sorted_data)
+                            #info_dict['Теги'] = ', '.join(tag_list)
                         info_dict[class_key] = info
                     except AttributeError:
                         info_dict[class_key] = 'Нет данных'
@@ -65,6 +61,26 @@ def microwavejournal(older_date=datetime.date.today() - datetime.timedelta(30)):
                 print(f'{i}: {tag_cunt[i]}')
             return articles_info
         page_num += 1
+
+
+def analyze_tags(tags_dict, tag_list):
+    for tag in tag_list:
+        if tag in tags_dict.keys():
+            tags_dict[tag] += 1
+        else:
+            tags_dict[tag] = 1
+    sorted_tuples = sorted(tags_dict.items(), key=lambda item: item[1], reverse=True)
+    sorted_tags = {k: v for k, v in sorted_tuples}
+    return sorted_tags
+
+
+def draw_bars(sorted_data):
+    keys = list(sorted_data.keys())
+    del keys[10:]
+    values = list(sorted_data.values())
+    del values[10:]
+    plt.bar(range(len(values)), values, tick_label=keys)
+    plt.show()
 
 
 def normalization_date(date_text: str):
